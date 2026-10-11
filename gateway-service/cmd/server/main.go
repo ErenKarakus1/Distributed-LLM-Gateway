@@ -15,6 +15,7 @@ func main() {
 
 	cfg := config.LoadConfig()
 	client := redis.NewClient(cfg.RedisURL)
+	defer client.Close()
 
 	router.POST("/v1/chat/completions", middleware.APIKeyAuthMiddleware(cfg.GatewayAPIKey), middleware.RateLimitMiddleware(cfg.RateLimitRequests, cfg.RateLimitSeconds, client), handlers.CreateChatCompletionHandler(cfg.RouterURL))
 

@@ -2,8 +2,8 @@ package middleware
 
 import (
 	"net/http"
-	"time"
 
+	"github.com/ErenKarakus1/Distributed-LLM-Gateway/gateway-service/internal/ratelimit"
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 )
@@ -21,22 +21,14 @@ func RateLimitMiddleware(rateLimitRequests int, rateLimitSeconds int, client *re
 			return
 		}
 		key := "rate_limit:" + apiKey
-		value, err := client.Incr(ctx, key).Result()
+		allowed, err := ratelimit.Allow(ctx.Request.Context(), client, rateLimitRequests, rateLimitSeconds, key)
 		if err != nil {
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 			return
 		}
-		if value > int64(rateLimitRequests) {
+		if !allowed {
 			ctx.AbortWithStatusJSON(http.StatusTooManyRequests, gin.H{"error": "rate limit exceeded"})
 			return
-		}
-		if value == 1 {
-			duration := time.Duration(rateLimitSeconds) * time.Second
-			ok, _ := client.Expire(ctx, key, duration).Result()
-			if !ok {
-				ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
-				return
-			}
 		}
 		ctx.Next()
 	}
