@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/ErenKarakus1/Distributed-LLM-Gateway/router-service/internal/models"
@@ -23,6 +24,10 @@ func RouteChatHandler() gin.HandlerFunc {
 		}
 		response, err := services.RouteChat(req)
 		if err != nil {
+			if errors.Is(err, services.ErrUnsupportedModel) {
+				ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				return
+			}
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 			return
 		}

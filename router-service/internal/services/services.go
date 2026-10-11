@@ -13,8 +13,27 @@ import (
 
 const providerURL = "http://localhost:8082/providers/chat"
 
+var ErrUnsupportedModel = errors.New("unsupported model")
+
+func selectProvider(model string) (string, error) {
+	switch model {
+	case "smart":
+		return "mock-openai", nil
+	case "cheap":
+		return "mock-anthropic", nil
+	case "fast":
+		return "mock-gemini", nil
+	default:
+		return "", ErrUnsupportedModel
+	}
+}
+
 func RouteChat(req models.CreateChatCompletionRequest) (models.CreateChatCompletionResponse, error) {
-	reqWithProvider := models.ProviderChatRequest{Provider: "mock-openai", CreateChatCompletionRequest: req}
+	provider, err := selectProvider(req.Model)
+	if err != nil {
+		return models.CreateChatCompletionResponse{}, err
+	}
+	reqWithProvider := models.ProviderChatRequest{Provider: provider, CreateChatCompletionRequest: req}
 	body, err := json.Marshal(reqWithProvider)
 	if err != nil {
 		return models.CreateChatCompletionResponse{}, errors.New("internal server error")
