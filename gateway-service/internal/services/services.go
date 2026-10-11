@@ -3,6 +3,7 @@ package services
 import (
 	"bytes"
 	"encoding/json"
+	"log"
 	"net/http"
 	"time"
 
@@ -12,6 +13,7 @@ import (
 
 func CreateChatCompletion(req models.CreateChatCompletionRequest, routerURL string) (models.CreateChatCompletionResponse, error) {
 	routerReq := models.RouterRequest{RequestID: uuid.New(), CreateChatCompletionRequest: req}
+	log.Printf("received chat completion request request_id=%v model=%v", routerReq.RequestID, routerReq.Model)
 	body, err := json.Marshal(routerReq)
 	if err != nil {
 		return models.CreateChatCompletionResponse{}, models.UpstreamError{StatusCode: 500, Message: "internal server error"}

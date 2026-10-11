@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -32,6 +33,7 @@ func RouteChat(req models.CreateChatCompletionRequest, providerURL string) (mode
 		return models.CreateChatCompletionResponse{}, err
 	}
 	reqWithProvider := models.ProviderChatRequest{Provider: provider, CreateChatCompletionRequest: req}
+	log.Printf("routing chat request request_id=%v model=%v provider=%v", reqWithProvider.RequestID, reqWithProvider.Model, reqWithProvider.Provider)
 	body, err := json.Marshal(reqWithProvider)
 	if err != nil {
 		return models.CreateChatCompletionResponse{}, errors.New("internal server error")
