@@ -18,6 +18,8 @@ func generateMockContent(provider string) (string, error) {
 		return "mock response from anthropic", nil
 	case "mock-gemini":
 		return "mock response from gemini", nil
+	case "mock-openai-fail":
+		return "", errors.New("mock openai provider failed")
 	default:
 		return "", ErrUnsupportedProvider
 	}

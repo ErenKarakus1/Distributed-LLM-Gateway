@@ -22,6 +22,8 @@ func selectProviders(model string) ([]string, error) {
 		return []string{"mock-anthropic", "mock-gemini"}, nil
 	case "fast":
 		return []string{"mock-gemini", "mock-openai"}, nil
+	case "fail-first":
+		return []string{"mock-openai-fail", "mock-gemini"}, nil
 	default:
 		return nil, ErrUnsupportedModel
 	}
