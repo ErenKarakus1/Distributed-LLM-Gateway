@@ -14,24 +14,20 @@ import (
 
 var ErrUnsupportedModel = errors.New("unsupported model")
 
-func selectProvider(model string) (string, error) {
+func selectProviders(model string) ([]string, error) {
 	switch model {
 	case "smart":
-		return "mock-openai", nil
+		return []string{"mock-openai", "mock-anthropic"}, nil
 	case "cheap":
-		return "mock-anthropic", nil
+		return []string{"mock-anthropic", "mock-gemini"}, nil
 	case "fast":
-		return "mock-gemini", nil
+		return []string{"mock-gemini", "mock-openai"}, nil
 	default:
-		return "", ErrUnsupportedModel
+		return nil, ErrUnsupportedModel
 	}
 }
 
-func RouteChat(req models.CreateChatCompletionRequest, providerURL string) (models.CreateChatCompletionResponse, error) {
-	provider, err := selectProvider(req.Model)
-	if err != nil {
-		return models.CreateChatCompletionResponse{}, err
-	}
+func callProvider(req models.CreateChatCompletionRequest, provider string, providerURL string) (models.CreateChatCompletionResponse, error) {
 	reqWithProvider := models.ProviderChatRequest{Provider: provider, CreateChatCompletionRequest: req}
 	log.Printf("routing chat request request_id=%v model=%v provider=%v", reqWithProvider.RequestID, reqWithProvider.Model, reqWithProvider.Provider)
 	body, err := json.Marshal(reqWithProvider)
@@ -63,4 +59,18 @@ func RouteChat(req models.CreateChatCompletionRequest, providerURL string) (mode
 	}
 
 	return result, nil
+}
+
+func RouteChat(req models.CreateChatCompletionRequest, providerURL string) (models.CreateChatCompletionResponse, error) {
+	providers, err := selectProviders(req.Model)
+	if err != nil {
+		return models.CreateChatCompletionResponse{}, err
+	}
+	for _, provider := range providers {
+		resp, err := callProvider(req, provider, providerURL)
+		if err == nil {
+			return resp, nil
+		}
+	}
+	return models.CreateChatCompletionResponse{}, errors.New("all providers failed")
 }
