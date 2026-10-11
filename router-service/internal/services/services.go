@@ -47,11 +47,17 @@ func callProvider(req models.CreateChatCompletionRequest, provider string, provi
 	}
 	httpReq.Header.Set("Content-Type", "application/json")
 
+	start := time.Now()
+
 	resp, err := client.Do(httpReq)
 	if err != nil {
 		return models.CreateChatCompletionResponse{}, errors.New("internal server error")
 	}
 	defer resp.Body.Close()
+
+	duration := time.Since(start)
+
+	log.Printf("provider call completed request_id=%v provider=%v status=%v duration_ms=%v", req.RequestID, provider, resp.StatusCode, duration.Milliseconds())
 
 	if resp.StatusCode != http.StatusOK {
 		return models.CreateChatCompletionResponse{}, fmt.Errorf("provider service returned status %v", resp.StatusCode)
