@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/ErenKarakus1/Distributed-LLM-Gateway/router-service/internal/models"
+	"github.com/ErenKarakus1/Distributed-LLM-Gateway/router-service/internal/routing"
 )
 
 const maxProviderAttempts = 2
@@ -71,11 +72,12 @@ func callProvider(req models.CreateChatCompletionRequest, provider string, provi
 	return result, nil
 }
 
-func RouteChat(req models.CreateChatCompletionRequest, providerURL string) (models.CreateChatCompletionResponse, error) {
+func RouteChat(req models.CreateChatCompletionRequest, providerURL string, routerState *routing.RouterState) (models.CreateChatCompletionResponse, error) {
 	providers, err := selectProviders(req.Model)
 	if err != nil {
 		return models.CreateChatCompletionResponse{}, err
 	}
+	providers = routerState.OrderProviders(req.Model, providers)
 	for _, provider := range providers {
 		for attempt := 1; attempt <= maxProviderAttempts; attempt++ {
 			resp, err := callProvider(req, provider, providerURL, attempt)
