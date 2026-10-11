@@ -12,6 +12,8 @@ import (
 	"github.com/ErenKarakus1/Distributed-LLM-Gateway/router-service/internal/models"
 )
 
+const maxProviderAttempts = 2
+
 var ErrUnsupportedModel = errors.New("unsupported model")
 
 func selectProviders(model string) ([]string, error) {
@@ -52,7 +54,7 @@ func callProvider(req models.CreateChatCompletionRequest, provider string, provi
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return models.CreateChatCompletionResponse{}, fmt.Errorf("router service returned status %v", resp.StatusCode)
+		return models.CreateChatCompletionResponse{}, fmt.Errorf("provider service returned status %v", resp.StatusCode)
 	}
 
 	var result models.CreateChatCompletionResponse
@@ -69,9 +71,12 @@ func RouteChat(req models.CreateChatCompletionRequest, providerURL string) (mode
 		return models.CreateChatCompletionResponse{}, err
 	}
 	for _, provider := range providers {
-		resp, err := callProvider(req, provider, providerURL)
-		if err == nil {
-			return resp, nil
+		for attempt := 1; attempt <= maxProviderAttempts; attempt++ {
+			resp, err := callProvider(req, provider, providerURL)
+			if err == nil {
+				return resp, nil
+			}
+			log.Printf("provider attempt failed request_id=%v provider=%v attempt=%v error=%v", req.RequestID, provider, attempt, err.Error())
 		}
 	}
 	return models.CreateChatCompletionResponse{}, errors.New("all providers failed")
