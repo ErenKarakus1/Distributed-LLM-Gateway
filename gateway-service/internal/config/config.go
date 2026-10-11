@@ -7,13 +7,15 @@ import (
 )
 
 type Config struct {
-	RouterURL string
+	RouterURL     string
+	GatewayAPIKey string
 }
 
 func LoadConfig() Config {
 	godotenv.Load()
 	return Config{
-		RouterURL: getEnv("ROUTER_URL", "http://localhost:8081/route/chat"),
+		RouterURL:     getEnv("ROUTER_URL", "http://localhost:8081/route/chat"),
+		GatewayAPIKey: getEnv("GATEWAY_API_KEY", "dev-api-key"),
 	}
 }
 
