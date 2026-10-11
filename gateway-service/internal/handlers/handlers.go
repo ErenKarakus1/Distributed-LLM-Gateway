@@ -2,7 +2,9 @@ package handlers
 
 import (
 	"errors"
+	"log"
 	"net/http"
+	"time"
 
 	"github.com/ErenKarakus1/Distributed-LLM-Gateway/gateway-service/internal/models"
 	"github.com/ErenKarakus1/Distributed-LLM-Gateway/gateway-service/internal/services"
@@ -24,10 +26,13 @@ func CreateChatCompletionHandler(routerURL string) gin.HandlerFunc {
 			return
 		}
 
+		start := time.Now()
 		response, err := services.CreateChatCompletion(req, routerURL)
+		duration := time.Since(start)
 		if err != nil {
 			var upstreamError models.UpstreamError
 			if errors.As(err, &upstreamError) {
+				log.Printf("chat completion request failed status=%v duration_ms=%v error=%v", upstreamError.StatusCode, duration.Milliseconds(), upstreamError.Error())
 				ctx.JSON(upstreamError.StatusCode, gin.H{"error": upstreamError.Error()})
 				return
 			}
@@ -35,6 +40,7 @@ func CreateChatCompletionHandler(routerURL string) gin.HandlerFunc {
 			return
 		}
 
+		log.Printf("completed chat completion request request_id=%v status=%v duration_ms=%v", response.RequestID, http.StatusOK, duration.Milliseconds())
 		ctx.JSON(http.StatusOK, response)
 	}
 }
