@@ -14,10 +14,12 @@ type ChatMessage struct {
 type CreateChatCompletionRequest struct {
 	Model    string        `json:"model"`
 	Messages []ChatMessage `json:"messages"`
+	Provider string        `json:"provider"`
 }
 
 func (c *CreateChatCompletionRequest) Normalize() {
 	c.Model = strings.ToLower(strings.TrimSpace(c.Model))
+	c.Provider = strings.ToLower(strings.TrimSpace(c.Provider))
 	for i, message := range c.Messages {
 		c.Messages[i].Role = strings.ToLower(strings.TrimSpace(message.Role))
 		c.Messages[i].Content = strings.TrimSpace(message.Content)

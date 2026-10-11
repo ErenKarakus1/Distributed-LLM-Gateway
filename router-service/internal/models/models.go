@@ -37,3 +37,8 @@ type CreateChatCompletionResponse struct {
 	Provider string                 `json:"provider"`
 	Choices  []ChatCompletionChoice `json:"choices"`
 }
+
+type ProviderChatRequest struct {
+	CreateChatCompletionRequest
+	Provider string `json:"provider"`
+}

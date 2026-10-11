@@ -14,7 +14,8 @@ import (
 const providerURL = "http://localhost:8082/providers/chat"
 
 func RouteChat(req models.CreateChatCompletionRequest) (models.CreateChatCompletionResponse, error) {
-	body, err := json.Marshal(req)
+	reqWithProvider := models.ProviderChatRequest{Provider: "mock-openai", CreateChatCompletionRequest: req}
+	body, err := json.Marshal(reqWithProvider)
 	if err != nil {
 		return models.CreateChatCompletionResponse{}, errors.New("internal server error")
 	}

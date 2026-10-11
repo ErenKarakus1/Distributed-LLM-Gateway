@@ -21,5 +21,8 @@ func ValidateCreateChatCompletionRequest(c models.CreateChatCompletionRequest) e
 			return errors.New("message content is required")
 		}
 	}
+	if c.Provider == "" {
+		return errors.New("provider is required")
+	}
 	return nil
 }

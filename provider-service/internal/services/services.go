@@ -10,7 +10,7 @@ func ProvideChat(req models.CreateChatCompletionRequest) (models.CreateChatCompl
 		ID:       uuid.New(),
 		Object:   "chat.completion",
 		Model:    req.Model,
-		Provider: "mock-provider",
+		Provider: req.Provider,
 		Choices: []models.ChatCompletionChoice{
 			{
 				Index: 0,
