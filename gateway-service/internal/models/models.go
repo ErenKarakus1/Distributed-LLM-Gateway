@@ -37,3 +37,15 @@ type CreateChatCompletionResponse struct {
 	Provider string                 `json:"provider"`
 	Choices  []ChatCompletionChoice `json:"choices"`
 }
+
+type UpstreamError struct {
+	StatusCode int
+	Message    string
+}
+
+func (e UpstreamError) Error() string {
+	if e.Message == "" {
+		return "upstream service error"
+	}
+	return e.Message
+}

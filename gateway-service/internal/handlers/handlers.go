@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/ErenKarakus1/Distributed-LLM-Gateway/gateway-service/internal/models"
@@ -25,6 +26,11 @@ func CreateChatCompletionHandler() gin.HandlerFunc {
 
 		response, err := services.CreateChatCompletion(req)
 		if err != nil {
+			var upstreamError models.UpstreamError
+			if errors.As(err, &upstreamError) {
+				ctx.JSON(upstreamError.StatusCode, gin.H{"error": upstreamError.Error()})
+				return
+			}
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 			return
 		}
