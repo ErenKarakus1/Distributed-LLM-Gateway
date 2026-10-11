@@ -11,8 +11,6 @@ import (
 	"github.com/ErenKarakus1/Distributed-LLM-Gateway/router-service/internal/models"
 )
 
-const providerURL = "http://localhost:8082/providers/chat"
-
 var ErrUnsupportedModel = errors.New("unsupported model")
 
 func selectProvider(model string) (string, error) {
@@ -28,7 +26,7 @@ func selectProvider(model string) (string, error) {
 	}
 }
 
-func RouteChat(req models.CreateChatCompletionRequest) (models.CreateChatCompletionResponse, error) {
+func RouteChat(req models.CreateChatCompletionRequest, providerURL string) (models.CreateChatCompletionResponse, error) {
 	provider, err := selectProvider(req.Model)
 	if err != nil {
 		return models.CreateChatCompletionResponse{}, err

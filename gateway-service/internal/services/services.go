@@ -9,9 +9,7 @@ import (
 	"github.com/ErenKarakus1/Distributed-LLM-Gateway/gateway-service/internal/models"
 )
 
-const routerURL = "http://localhost:8081/route/chat"
-
-func CreateChatCompletion(req models.CreateChatCompletionRequest) (models.CreateChatCompletionResponse, error) {
+func CreateChatCompletion(req models.CreateChatCompletionRequest, routerURL string) (models.CreateChatCompletionResponse, error) {
 	body, err := json.Marshal(req)
 	if err != nil {
 		return models.CreateChatCompletionResponse{}, models.UpstreamError{StatusCode: 500, Message: "internal server error"}

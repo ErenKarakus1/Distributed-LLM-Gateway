@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func CreateChatCompletionHandler() gin.HandlerFunc {
+func CreateChatCompletionHandler(routerURL string) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var req models.CreateChatCompletionRequest
 		if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -24,7 +24,7 @@ func CreateChatCompletionHandler() gin.HandlerFunc {
 			return
 		}
 
-		response, err := services.CreateChatCompletion(req)
+		response, err := services.CreateChatCompletion(req, routerURL)
 		if err != nil {
 			var upstreamError models.UpstreamError
 			if errors.As(err, &upstreamError) {

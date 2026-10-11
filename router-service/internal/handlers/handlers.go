@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RouteChatHandler() gin.HandlerFunc {
+func RouteChatHandler(providerURL string) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var req models.CreateChatCompletionRequest
 		if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -22,7 +22,7 @@ func RouteChatHandler() gin.HandlerFunc {
 			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		response, err := services.RouteChat(req)
+		response, err := services.RouteChat(req, providerURL)
 		if err != nil {
 			if errors.Is(err, services.ErrUnsupportedModel) {
 				ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
