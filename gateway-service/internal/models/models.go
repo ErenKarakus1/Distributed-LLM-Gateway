@@ -31,11 +31,12 @@ type ChatCompletionChoice struct {
 }
 
 type CreateChatCompletionResponse struct {
-	ID       uuid.UUID              `json:"id"`
-	Object   string                 `json:"object"`
-	Model    string                 `json:"model"`
-	Provider string                 `json:"provider"`
-	Choices  []ChatCompletionChoice `json:"choices"`
+	ID        uuid.UUID              `json:"id"`
+	RequestID uuid.UUID              `json:"request_id"`
+	Object    string                 `json:"object"`
+	Model     string                 `json:"model"`
+	Provider  string                 `json:"provider"`
+	Choices   []ChatCompletionChoice `json:"choices"`
 }
 
 type UpstreamError struct {
@@ -48,4 +49,9 @@ func (e UpstreamError) Error() string {
 		return "upstream service error"
 	}
 	return e.Message
+}
+
+type RouterRequest struct {
+	RequestID uuid.UUID `json:"request_id"`
+	CreateChatCompletionRequest
 }

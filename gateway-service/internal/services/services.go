@@ -7,10 +7,12 @@ import (
 	"time"
 
 	"github.com/ErenKarakus1/Distributed-LLM-Gateway/gateway-service/internal/models"
+	"github.com/google/uuid"
 )
 
 func CreateChatCompletion(req models.CreateChatCompletionRequest, routerURL string) (models.CreateChatCompletionResponse, error) {
-	body, err := json.Marshal(req)
+	routerReq := models.RouterRequest{RequestID: uuid.New(), CreateChatCompletionRequest: req}
+	body, err := json.Marshal(routerReq)
 	if err != nil {
 		return models.CreateChatCompletionResponse{}, models.UpstreamError{StatusCode: 500, Message: "internal server error"}
 	}

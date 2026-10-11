@@ -28,10 +28,11 @@ func ProvideChat(req models.CreateChatCompletionRequest) (models.CreateChatCompl
 		return models.CreateChatCompletionResponse{}, err
 	}
 	return models.CreateChatCompletionResponse{
-		ID:       uuid.New(),
-		Object:   "chat.completion",
-		Model:    req.Model,
-		Provider: req.Provider,
+		ID:        uuid.New(),
+		RequestID: req.RequestID,
+		Object:    "chat.completion",
+		Model:     req.Model,
+		Provider:  req.Provider,
 		Choices: []models.ChatCompletionChoice{
 			{
 				Index: 0,

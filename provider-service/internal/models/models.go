@@ -12,9 +12,10 @@ type ChatMessage struct {
 }
 
 type CreateChatCompletionRequest struct {
-	Model    string        `json:"model"`
-	Messages []ChatMessage `json:"messages"`
-	Provider string        `json:"provider"`
+	Model     string        `json:"model"`
+	Messages  []ChatMessage `json:"messages"`
+	Provider  string        `json:"provider"`
+	RequestID uuid.UUID     `json:"request_id"`
 }
 
 func (c *CreateChatCompletionRequest) Normalize() {
@@ -33,9 +34,10 @@ type ChatCompletionChoice struct {
 }
 
 type CreateChatCompletionResponse struct {
-	ID       uuid.UUID              `json:"id"`
-	Object   string                 `json:"object"`
-	Model    string                 `json:"model"`
-	Provider string                 `json:"provider"`
-	Choices  []ChatCompletionChoice `json:"choices"`
+	ID        uuid.UUID              `json:"id"`
+	RequestID uuid.UUID              `json:"request_id"`
+	Object    string                 `json:"object"`
+	Model     string                 `json:"model"`
+	Provider  string                 `json:"provider"`
+	Choices   []ChatCompletionChoice `json:"choices"`
 }
