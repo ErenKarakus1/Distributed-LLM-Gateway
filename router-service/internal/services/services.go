@@ -31,7 +31,7 @@ func selectProviders(model string) ([]string, error) {
 	}
 }
 
-func callProvider(req models.CreateChatCompletionRequest, provider string, providerURL string) (models.CreateChatCompletionResponse, error) {
+func callProvider(req models.CreateChatCompletionRequest, provider string, providerURL string, attempt int) (models.CreateChatCompletionResponse, error) {
 	reqWithProvider := models.ProviderChatRequest{Provider: provider, CreateChatCompletionRequest: req}
 	log.Printf("routing chat request request_id=%v model=%v provider=%v", reqWithProvider.RequestID, reqWithProvider.Model, reqWithProvider.Provider)
 	body, err := json.Marshal(reqWithProvider)
@@ -57,7 +57,7 @@ func callProvider(req models.CreateChatCompletionRequest, provider string, provi
 
 	duration := time.Since(start)
 
-	log.Printf("provider call completed request_id=%v provider=%v status=%v duration_ms=%v", req.RequestID, provider, resp.StatusCode, duration.Milliseconds())
+	log.Printf("provider call completed request_id=%v provider=%v attempt=%v status=%v duration_ms=%v", req.RequestID, provider, attempt, resp.StatusCode, duration.Milliseconds())
 
 	if resp.StatusCode != http.StatusOK {
 		return models.CreateChatCompletionResponse{}, fmt.Errorf("provider service returned status %v", resp.StatusCode)
@@ -78,7 +78,7 @@ func RouteChat(req models.CreateChatCompletionRequest, providerURL string) (mode
 	}
 	for _, provider := range providers {
 		for attempt := 1; attempt <= maxProviderAttempts; attempt++ {
-			resp, err := callProvider(req, provider, providerURL)
+			resp, err := callProvider(req, provider, providerURL, attempt)
 			if err == nil {
 				return resp, nil
 			}
