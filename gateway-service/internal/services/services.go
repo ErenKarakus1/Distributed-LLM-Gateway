@@ -43,7 +43,7 @@ func CreateChatCompletion(routerReq models.RouterRequest, routerURL string) (mod
 		return models.CreateChatCompletionResponse{}, models.UpstreamError{StatusCode: 500, Message: "internal server error"}
 	}
 	client := http.Client{
-		Timeout: 5 * time.Second,
+		Timeout: 30 * time.Second,
 	}
 	httpReq, err := http.NewRequest(http.MethodPost, routerURL, bytes.NewBuffer(body))
 	if err != nil {

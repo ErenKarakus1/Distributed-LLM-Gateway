@@ -42,7 +42,7 @@ func callProvider(req models.CreateChatCompletionRequest, provider string, provi
 		return models.CreateChatCompletionResponse{}, errors.New("internal server error")
 	}
 	client := http.Client{
-		Timeout: 5 * time.Second,
+		Timeout: 30 * time.Second,
 	}
 	httpReq, err := http.NewRequest(http.MethodPost, providerURL, bytes.NewBuffer(body))
 	if err != nil {

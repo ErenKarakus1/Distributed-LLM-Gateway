@@ -30,6 +30,14 @@ func ProvideChatHandler(cfg config.Config) gin.HandlerFunc {
 				ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 				return
 			}
+			if errors.Is(err, services.ErrOpenAIAPIKeyMissing) {
+				ctx.JSON(http.StatusBadRequest, gin.H{"error": "openai api key is required"})
+				return
+			}
+			if errors.Is(err, services.ErrOpenAIRequestFailed) {
+				ctx.JSON(http.StatusBadGateway, gin.H{"error": "openai request failed"})
+				return
+			}
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 			return
 		}

@@ -13,6 +13,9 @@ import (
 	"github.com/google/uuid"
 )
 
+var ErrOpenAIAPIKeyMissing = errors.New("openai api key is missing")
+var ErrOpenAIRequestFailed = errors.New("openai request failed")
+
 type OpenAIChatRequest struct {
 	Model    string               `json:"model"`
 	Messages []models.ChatMessage `json:"messages"`
@@ -31,7 +34,7 @@ type OpenAIChatResponse struct {
 
 func callOpenAI(req models.CreateChatCompletionRequest, cfg config.Config) (models.CreateChatCompletionResponse, error) {
 	if cfg.OpenAIAPIKey == "" {
-		return models.CreateChatCompletionResponse{}, errors.New("openai api key is required")
+		return models.CreateChatCompletionResponse{}, ErrOpenAIAPIKeyMissing
 	}
 
 	openAIReq := OpenAIChatRequest{
@@ -65,7 +68,7 @@ func callOpenAI(req models.CreateChatCompletionRequest, cfg config.Config) (mode
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return models.CreateChatCompletionResponse{}, errors.New("openai request failed")
+		return models.CreateChatCompletionResponse{}, ErrOpenAIRequestFailed
 	}
 
 	var openAIResp OpenAIChatResponse
