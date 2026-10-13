@@ -371,7 +371,11 @@ curl -X POST http://localhost:8080/v1/chat/completions \
 
 ```http
 POST /v1/chat/completions
+GET  /admin/logs
+GET  /admin/usage-summary
 ```
+
+`POST /v1/chat/completions` sends a chat request through the gateway, router, and provider services.
 
 Request body:
 
@@ -384,6 +388,55 @@ Request body:
       "content": "Hello"
     }
   ]
+}
+```
+
+`GET /admin/logs` returns the latest request logs from PostgreSQL.
+
+Example response:
+
+```json
+[
+  {
+    "id": "uuid",
+    "request_id": "uuid",
+    "model": "smart",
+    "provider": "mock-openai",
+    "status_code": 200,
+    "duration_ms": 24,
+    "prompt_tokens": 8,
+    "completion_tokens": 6,
+    "total_tokens": 14,
+    "input_cost_usd": 0.0000012,
+    "output_cost_usd": 0.0000036,
+    "total_cost_usd": 0.0000048,
+    "created_at": "2026-10-14T01:19:03Z"
+  }
+]
+```
+
+`GET /admin/usage-summary` returns aggregated usage data for dashboard cards and charts.
+
+Example response:
+
+```json
+{
+  "total_requests": 10,
+  "successful_requests": 9,
+  "failed_requests": 1,
+  "total_tokens": 152,
+  "total_cost_usd": 0.000042,
+  "average_duration_ms": 31.4,
+  "requests_by_model": {
+    "smart": 6,
+    "cheap": 3,
+    "real": 1
+  },
+  "requests_by_provider": {
+    "mock-openai": 4,
+    "mock-anthropic": 5,
+    "openai": 1
+  }
 }
 ```
 

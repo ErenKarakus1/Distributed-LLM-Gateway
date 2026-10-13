@@ -60,3 +60,28 @@ func CreateChatCompletionHandler(routerURL string, pool *pgxpool.Pool) gin.Handl
 		ctx.JSON(http.StatusOK, response)
 	}
 }
+
+func GetLogsHandler(pool *pgxpool.Pool) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		logs, err := repository.GetLogs(ctx.Request.Context(), pool)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+			return
+		}
+		if logs == nil {
+			logs = []models.RequestLog{}
+		}
+		ctx.JSON(http.StatusOK, logs)
+	}
+}
+
+func GetUsageSummaryHandler(pool *pgxpool.Pool) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		summary, err := repository.GetUsageSummary(ctx.Request.Context(), pool)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+			return
+		}
+		ctx.JSON(http.StatusOK, summary)
+	}
+}

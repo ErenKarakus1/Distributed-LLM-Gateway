@@ -72,3 +72,14 @@ type RequestLog struct {
 	TotalCostUSD     float64   `json:"total_cost_usd"`
 	CreatedAt        time.Time `json:"created_at"`
 }
+
+type UsageSummary struct {
+	TotalRequests      int64            `json:"total_requests"`
+	SuccessfulRequests int64            `json:"successful_requests"`
+	FailedRequests     int64            `json:"failed_requests"`
+	TotalTokens        int64            `json:"total_tokens"`
+	TotalCostUSD       float64          `json:"total_cost_usd"`
+	AverageDurationMS  float64          `json:"average_duration_ms"`
+	RequestsByModel    map[string]int64 `json:"requests_by_model"`
+	RequestsByProvider map[string]int64 `json:"requests_by_provider"`
+}

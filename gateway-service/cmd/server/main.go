@@ -26,6 +26,8 @@ func main() {
 	log.Println("connected to postgres")
 
 	router.POST("/v1/chat/completions", middleware.APIKeyAuthMiddleware(cfg.GatewayAPIKey), middleware.RateLimitMiddleware(cfg.RateLimitRequests, cfg.RateLimitSeconds, client), handlers.CreateChatCompletionHandler(cfg.RouterURL, pool))
+	router.GET("/admin/logs", middleware.APIKeyAuthMiddleware(cfg.GatewayAPIKey), handlers.GetLogsHandler(pool))
+	router.GET("/admin/usage-summary", middleware.APIKeyAuthMiddleware(cfg.GatewayAPIKey), handlers.GetUsageSummaryHandler(pool))
 
 	if err := router.Run(":8080"); err != nil {
 		log.Fatal(err)
