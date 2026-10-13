@@ -1,0 +1,70 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: llm_gateway
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./gateway-service/migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d llm_gateway"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:8-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  provider-service:
+    build:
+      context: ./provider-service
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-https://api.openai.com/v1}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4.1-nano}
+    ports:
+      - "8082:8082"
+
+  router-service:
+    build:
+      context: ./router-service
+    environment:
+      PROVIDER_URL: http://provider-service:8082/providers/chat
+    ports:
+      - "8081:8081"
+    depends_on:
+      - provider-service
+
+  gateway-service:
+    build:
+      context: ./gateway-service
+    environment:
+      ROUTER_URL: http://router-service:8081/route/chat
+      GATEWAY_API_KEY: ${GATEWAY_API_KEY:-dev-api-key}
+      REDIS_URL: redis://redis:6379
+      RATE_LIMIT_REQUESTS: ${RATE_LIMIT_REQUESTS:-5}
+      RATE_LIMIT_SECONDS: ${RATE_LIMIT_SECONDS:-60}
+      POSTGRES_URL: postgres://postgres:postgres@postgres:5432/llm_gateway?sslmode=disable
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      router-service:
+        condition: service_started
+
+volumes:
+  postgres_data:
