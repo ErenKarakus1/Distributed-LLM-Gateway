@@ -4,16 +4,19 @@
 ![Gin](https://img.shields.io/badge/Gin-008ECF?style=for-the-badge&logo=gin&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
 ![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)
+![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 ![OpenAI](https://img.shields.io/badge/OpenAI-412991?style=for-the-badge&logo=openai&logoColor=white)
 
-A distributed LLM gateway built as a set of independent Go microservices. It exposes an OpenAI-style chat completions API, authenticates client requests, rate limits by API key, routes requests across mock and real providers, retries failed providers, estimates token usage and cost, and logs request metadata to PostgreSQL.
+A distributed LLM gateway built as a set of independent Go microservices with a React dashboard. It exposes an OpenAI-style chat completions API, authenticates client requests, rate limits by API key, routes requests across mock and real providers, retries failed providers, estimates token usage and cost, and logs request metadata to PostgreSQL.
 
 ## Architecture
 
 ```mermaid
 flowchart LR
+    Client --> Frontend[React Dashboard]
     Client --> Gateway
+    Frontend --> Gateway
 
     Gateway --> Redis[(Redis)]
     Gateway --> Postgres[(PostgreSQL)]
@@ -36,6 +39,7 @@ distributed-llm-gateway/
 ├── gateway-service/
 ├── router-service/
 ├── provider-service/
+├── frontend/
 ├── docker-compose.yml
 └── .env.example
 ```
@@ -55,6 +59,7 @@ Responsible for:
 * PostgreSQL request logging
 * Usage tracking
 * Cost estimation
+* Admin read endpoints for logs and usage summary
 
 ### Router Service
 
@@ -73,6 +78,7 @@ Supported models:
 * cheap
 * fast
 * fail-first
+* fail-both
 * real
 
 ### Provider Service
@@ -94,6 +100,18 @@ Supported providers:
 * mock-openai-fail
 * openai
 
+### Frontend Dashboard
+
+Responsible for:
+
+* Chat playground for testing gateway requests
+* API key input
+* Model selection
+* Response preview
+* Usage summary cards
+* Request logs table
+* Requests by model and provider breakdowns
+
 ---
 
 ## Tech Stack
@@ -102,6 +120,13 @@ Supported providers:
 
 * Go
 * Gin
+
+### Frontend
+
+* React
+* TypeScript
+* Vite
+* Nginx
 
 ### Database
 
@@ -146,6 +171,9 @@ Supported providers:
 * PostgreSQL request logging
 * Prompt, completion, and total token estimation
 * Input, output, and total cost estimation
+* Admin logs endpoint
+* Admin usage summary endpoint
+* React dashboard for chat testing and usage visibility
 * Docker Compose setup for the full system
 
 ---
@@ -155,6 +183,7 @@ Supported providers:
 ```mermaid
 sequenceDiagram
     participant Client
+    participant Frontend
     participant Gateway
     participant Redis
     participant Postgres
@@ -162,7 +191,8 @@ sequenceDiagram
     participant Provider
     participant OpenAI
 
-    Client->>Gateway: POST /v1/chat/completions
+    Client->>Frontend: Use dashboard
+    Frontend->>Gateway: POST /v1/chat/completions
     Gateway->>Gateway: Validate API key
     Gateway->>Redis: Check rate limit
     Gateway->>Gateway: Validate request and create request_id
@@ -181,7 +211,8 @@ sequenceDiagram
     Router-->>Gateway: Chat completion response
     Gateway->>Gateway: Estimate usage and cost
     Gateway->>Postgres: Insert request log
-    Gateway-->>Client: Chat completion response
+    Gateway-->>Frontend: Chat completion response
+    Frontend-->>Client: Display response and usage data
 ```
 
 ---
@@ -198,12 +229,14 @@ flowchart LR
     B -->|cheap| D[mock-anthropic, mock-gemini]
     B -->|fast| E[mock-gemini, mock-openai]
     B -->|fail-first| F[mock-openai-fail, mock-gemini]
+    B -->|fail-both| M[mock-openai-fail]
     B -->|real| G[openai]
 
     C --> H[Round-robin ordering]
     D --> H
     E --> H
     F --> H
+    M --> H
     G --> H
 
     H --> I[Try provider]
@@ -269,6 +302,7 @@ GATEWAY_API_KEY=<your_api_key>
 * Docker
 * Docker Compose
 * Go 1.26+ if running services manually
+* Node.js 22+ if running the frontend manually
 
 ### 2. Configure environment variables
 
@@ -280,11 +314,28 @@ cp .env.example .env
 
 For mock providers, no OpenAI key is required.
 
-For the real OpenAI provider, set:
+For the real OpenAI provider, set this in the root `.env` file:
 
 ```env
 OPENAI_API_KEY=<your_openai_api_key>
 OPENAI_MODEL=gpt-4.1-nano
+```
+
+If `OPENAI_API_KEY` is not set and the `real` model is requested, the gateway currently returns an internal server error because the provider configuration error is not fully propagated through the router yet.
+
+Docker Compose automatically reads `.env` from the project root. When `OPENAI_API_KEY` is set there, Compose passes it into `provider-service`.
+
+You can also pass it inline:
+
+```bash
+OPENAI_API_KEY=<your_openai_api_key> docker compose up --build
+```
+
+On PowerShell:
+
+```powershell
+$env:OPENAI_API_KEY="<your_openai_api_key>"
+docker compose up --build
 ```
 
 ### 3. Run everything with Docker Compose
@@ -296,6 +347,7 @@ docker compose up --build
 Services will be available at:
 
 ```text
+frontend          http://localhost:3000
 gateway-service   http://localhost:8080
 router-service    http://localhost:8081
 provider-service  http://localhost:8082
@@ -303,7 +355,7 @@ postgres          localhost:5432
 redis             localhost:6379
 ```
 
-All client traffic should go through the gateway at `http://localhost:8080`.
+Browser traffic can use the dashboard at `http://localhost:3000`. API traffic should go through the gateway at `http://localhost:8080`.
 
 ### 4. Send a mock request
 
@@ -346,7 +398,7 @@ Example response:
 
 ### 5. Send a real OpenAI request
 
-Set `OPENAI_API_KEY` in `.env`, then run Docker Compose again.
+Set `OPENAI_API_KEY` in the root `.env`, then run Docker Compose again.
 
 ```bash
 curl -X POST http://localhost:8080/v1/chat/completions \
@@ -462,11 +514,20 @@ Internal endpoint used by the router service.
 
 Docker Compose starts:
 
+* frontend
 * gateway-service
 * router-service
 * provider-service
 * PostgreSQL
 * Redis
+
+The frontend is served at:
+
+```text
+http://localhost:3000
+```
+
+Inside Docker, the frontend proxies `/api` requests to `gateway-service:8080`.
 
 Stop the stack with:
 
@@ -482,6 +543,26 @@ docker compose down -v
 
 ---
 
+## Frontend Development
+
+Run the dashboard locally with Vite:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The Vite dev server runs at:
+
+```text
+http://localhost:5173
+```
+
+During local development, frontend `/api` requests are proxied to `http://localhost:8080`.
+
+---
+
 ## Security Features
 
 * API key authentication at the gateway
@@ -491,7 +572,7 @@ docker compose down -v
 * No API keys committed to the repository
 * `.env` files ignored by Git
 
-**Note: Only `gateway-service` should be reachable outside your private network.** The router and provider services are internal services and currently trust requests from the gateway/router path. There is no mTLS, service-to-service authentication, or independent authorization between internal services yet.
+**Note: Only `frontend` and `gateway-service` should be reachable outside your private network.** The router and provider services are internal services and currently trust requests from the gateway/router path. There is no mTLS, service-to-service authentication, or independent authorization between internal services yet.
 
 ---
 

@@ -66,5 +66,13 @@ services:
       router-service:
         condition: service_started
 
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - gateway-service
+
 volumes:
   postgres_data:
