@@ -20,6 +20,7 @@ var providerPrices = map[string]providerPrice{
 	"mock-openai":    {inputPerMillion: 0.15, outputPerMillion: 0.60},
 	"mock-anthropic": {inputPerMillion: 0.05, outputPerMillion: 0.20},
 	"mock-gemini":    {inputPerMillion: 0.10, outputPerMillion: 0.40},
+	"openai":         {inputPerMillion: 0.10, outputPerMillion: 0.40},
 }
 
 func estimateCost(provider string, promptTokens int, completionTokens int) (float64, float64, float64) {

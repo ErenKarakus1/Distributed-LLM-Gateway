@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log"
 
+	"github.com/ErenKarakus1/Distributed-LLM-Gateway/provider-service/internal/config"
 	"github.com/ErenKarakus1/Distributed-LLM-Gateway/provider-service/internal/models"
 	"github.com/google/uuid"
 )
@@ -25,8 +26,13 @@ func generateMockContent(provider string) (string, error) {
 	}
 }
 
-func ProvideChat(req models.CreateChatCompletionRequest) (models.CreateChatCompletionResponse, error) {
+func ProvideChat(req models.CreateChatCompletionRequest, cfg config.Config) (models.CreateChatCompletionResponse, error) {
 	log.Printf("handling provider chat request request_id=%v model=%v provider=%v", req.RequestID, req.Model, req.Provider)
+
+	if req.Provider == "openai" {
+		return callOpenAI(req, cfg)
+	}
+
 	content, err := generateMockContent(req.Provider)
 	if err != nil {
 		return models.CreateChatCompletionResponse{}, err

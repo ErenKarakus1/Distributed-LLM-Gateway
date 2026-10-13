@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 
+	"github.com/ErenKarakus1/Distributed-LLM-Gateway/provider-service/internal/config"
 	"github.com/ErenKarakus1/Distributed-LLM-Gateway/provider-service/internal/handlers"
 	"github.com/gin-gonic/gin"
 )
@@ -10,7 +11,9 @@ import (
 func main() {
 	router := gin.Default()
 
-	router.POST("/providers/chat", handlers.ProvideChatHandler())
+	cfg := config.LoadConfig()
+
+	router.POST("/providers/chat", handlers.ProvideChatHandler(cfg))
 
 	if err := router.Run(":8082"); err != nil {
 		log.Fatal(err)
