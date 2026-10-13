@@ -67,5 +67,8 @@ type RequestLog struct {
 	PromptTokens     int       `json:"prompt_tokens"`
 	CompletionTokens int       `json:"completion_tokens"`
 	TotalTokens      int       `json:"total_tokens"`
+	InputCostUSD     float64   `json:"input_cost_usd"`
+	OutputCostUSD    float64   `json:"output_cost_usd"`
+	TotalCostUSD     float64   `json:"total_cost_usd"`
 	CreatedAt        time.Time `json:"created_at"`
 }

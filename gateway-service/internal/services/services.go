@@ -11,6 +11,30 @@ import (
 	"github.com/google/uuid"
 )
 
+type providerPrice struct {
+	inputPerMillion  float64
+	outputPerMillion float64
+}
+
+var providerPrices = map[string]providerPrice{
+	"mock-openai":    {inputPerMillion: 0.15, outputPerMillion: 0.60},
+	"mock-anthropic": {inputPerMillion: 0.05, outputPerMillion: 0.20},
+	"mock-gemini":    {inputPerMillion: 0.10, outputPerMillion: 0.40},
+}
+
+func estimateCost(provider string, promptTokens int, completionTokens int) (float64, float64, float64) {
+	prices, ok := providerPrices[provider]
+	if !ok {
+		return 0, 0, 0
+	}
+
+	inputCost := float64(promptTokens) / 1000000 * prices.inputPerMillion
+	outputCost := float64(completionTokens) / 1000000 * prices.outputPerMillion
+	totalCost := inputCost + outputCost
+
+	return inputCost, outputCost, totalCost
+}
+
 func CreateChatCompletion(routerReq models.RouterRequest, routerURL string) (models.CreateChatCompletionResponse, error) {
 	log.Printf("received chat completion request request_id=%v model=%v", routerReq.RequestID, routerReq.Model)
 	body, err := json.Marshal(routerReq)
@@ -79,6 +103,7 @@ func estimateCompletionTokens(resp models.CreateChatCompletionResponse) int {
 func CreateLogSuccess(resp models.CreateChatCompletionResponse, durationMS int, promptTokens int) models.RequestLog {
 	completionTokens := estimateCompletionTokens(resp)
 	totalTokens := completionTokens + promptTokens
+	inputCost, outputCost, totalCost := estimateCost(resp.Provider, promptTokens, completionTokens)
 	return models.RequestLog{
 		ID:               uuid.New(),
 		RequestID:        resp.RequestID,
@@ -88,6 +113,9 @@ func CreateLogSuccess(resp models.CreateChatCompletionResponse, durationMS int, 
 		PromptTokens:     promptTokens,
 		CompletionTokens: completionTokens,
 		TotalTokens:      totalTokens,
+		InputCostUSD:     inputCost,
+		OutputCostUSD:    outputCost,
+		TotalCostUSD:     totalCost,
 		DurationMS:       durationMS,
 	}
 }
