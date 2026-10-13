@@ -15,9 +15,12 @@ const insertLogSQL = `
 		model,
 		provider,
 		status_code,
+		prompt_tokens,
+		completion_tokens,
+		total_tokens,
 		duration_ms
 	)
-	VALUES ($1,$2,$3,$4,$5,$6)
+	VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
 `
 
 func InsertLog(ctx context.Context, pool *pgxpool.Pool, log models.RequestLog) error {
@@ -29,6 +32,9 @@ func InsertLog(ctx context.Context, pool *pgxpool.Pool, log models.RequestLog) e
 		log.Model,
 		log.Provider,
 		log.StatusCode,
+		log.PromptTokens,
+		log.CompletionTokens,
+		log.TotalTokens,
 		log.DurationMS,
 	)
 	if err != nil {

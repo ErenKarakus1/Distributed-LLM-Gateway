@@ -30,7 +30,7 @@ func CreateChatCompletionHandler(routerURL string, pool *pgxpool.Pool) gin.Handl
 		}
 
 		routerReq := models.RouterRequest{RequestID: uuid.New(), CreateChatCompletionRequest: req}
-
+		promptTokens := services.EstimatePromptTokens(routerReq.Messages)
 		start := time.Now()
 		response, err := services.CreateChatCompletion(routerReq, routerURL)
 		duration := time.Since(start)
@@ -38,21 +38,21 @@ func CreateChatCompletionHandler(routerURL string, pool *pgxpool.Pool) gin.Handl
 			var upstreamError models.UpstreamError
 			if errors.As(err, &upstreamError) {
 				log.Printf("chat completion request failed status=%v duration_ms=%v error=%v", upstreamError.StatusCode, duration.Milliseconds(), upstreamError.Error())
-				requestLog := services.CreateLogFail(routerReq, upstreamError.StatusCode, int(duration.Milliseconds()))
+				requestLog := services.CreateLogFail(routerReq, upstreamError.StatusCode, int(duration.Milliseconds()), promptTokens)
 				if err := repository.InsertLog(ctx.Request.Context(), pool, requestLog); err != nil {
 					log.Printf("Couldnt create log in db, request_id:%v", routerReq.RequestID)
 				}
 				ctx.JSON(upstreamError.StatusCode, gin.H{"error": upstreamError.Error()})
 				return
 			}
-			requestLog := services.CreateLogFail(routerReq, 500, int(duration.Milliseconds()))
+			requestLog := services.CreateLogFail(routerReq, 500, int(duration.Milliseconds()), promptTokens)
 			if err := repository.InsertLog(ctx.Request.Context(), pool, requestLog); err != nil {
 				log.Printf("Couldnt create log in db, request_id:%v", routerReq.RequestID)
 			}
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 			return
 		}
-		responseLog := services.CreateLogSuccess(response, int(duration.Milliseconds()))
+		responseLog := services.CreateLogSuccess(response, int(duration.Milliseconds()), promptTokens)
 		if err := repository.InsertLog(ctx.Request.Context(), pool, responseLog); err != nil {
 			log.Printf("Couldnt create log in db, request_id:%v", routerReq.RequestID)
 		}

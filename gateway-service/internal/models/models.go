@@ -58,11 +58,14 @@ type RouterRequest struct {
 }
 
 type RequestLog struct {
-	ID         uuid.UUID `json:"id"`
-	RequestID  uuid.UUID `json:"request_id"`
-	Model      string    `json:"model"`
-	Provider   *string   `json:"provider,omitempty"`
-	StatusCode int       `json:"status_code"`
-	DurationMS int       `json:"duration_ms"`
-	CreatedAt  time.Time `json:"created_at"`
+	ID               uuid.UUID `json:"id"`
+	RequestID        uuid.UUID `json:"request_id"`
+	Model            string    `json:"model"`
+	Provider         *string   `json:"provider,omitempty"`
+	StatusCode       int       `json:"status_code"`
+	DurationMS       int       `json:"duration_ms"`
+	PromptTokens     int       `json:"prompt_tokens"`
+	CompletionTokens int       `json:"completion_tokens"`
+	TotalTokens      int       `json:"total_tokens"`
+	CreatedAt        time.Time `json:"created_at"`
 }

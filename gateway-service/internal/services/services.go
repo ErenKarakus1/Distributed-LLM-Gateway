@@ -53,23 +53,53 @@ func CreateChatCompletion(routerReq models.RouterRequest, routerURL string) (mod
 	return result, nil
 }
 
-func CreateLogSuccess(resp models.CreateChatCompletionResponse, durationMS int) models.RequestLog {
+func estimateTokens(charsLength int) int {
+	if charsLength == 0 {
+		return 0
+	}
+	return (charsLength + 3) / 4
+}
+
+func EstimatePromptTokens(messages []models.ChatMessage) int {
+	totalChars := 0
+	for _, msg := range messages {
+		totalChars += len(msg.Content)
+	}
+	return estimateTokens(totalChars)
+}
+
+func estimateCompletionTokens(resp models.CreateChatCompletionResponse) int {
+	totalChars := 0
+	for _, choice := range resp.Choices {
+		totalChars += len(choice.Message.Content)
+	}
+	return estimateTokens(totalChars)
+}
+
+func CreateLogSuccess(resp models.CreateChatCompletionResponse, durationMS int, promptTokens int) models.RequestLog {
+	completionTokens := estimateCompletionTokens(resp)
+	totalTokens := completionTokens + promptTokens
 	return models.RequestLog{
-		ID:         uuid.New(),
-		RequestID:  resp.RequestID,
-		Model:      resp.Model,
-		Provider:   &resp.Provider,
-		StatusCode: 200,
-		DurationMS: durationMS,
+		ID:               uuid.New(),
+		RequestID:        resp.RequestID,
+		Model:            resp.Model,
+		Provider:         &resp.Provider,
+		StatusCode:       200,
+		PromptTokens:     promptTokens,
+		CompletionTokens: completionTokens,
+		TotalTokens:      totalTokens,
+		DurationMS:       durationMS,
 	}
 }
 
-func CreateLogFail(req models.RouterRequest, statusCode int, durationMS int) models.RequestLog {
+func CreateLogFail(req models.RouterRequest, statusCode int, durationMS int, promptTokens int) models.RequestLog {
 	return models.RequestLog{
-		ID:         uuid.New(),
-		RequestID:  req.RequestID,
-		Model:      req.Model,
-		StatusCode: statusCode,
-		DurationMS: durationMS,
+		ID:           uuid.New(),
+		RequestID:    req.RequestID,
+		Model:        req.Model,
+		StatusCode:   statusCode,
+		PromptTokens: promptTokens,
+		TotalTokens:  promptTokens,
+		DurationMS:   durationMS,
 	}
 }

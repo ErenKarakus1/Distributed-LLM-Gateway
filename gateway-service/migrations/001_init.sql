@@ -5,5 +5,8 @@ CREATE TABLE IF NOT EXISTS request_logs (
     provider TEXT,
     status_code INT NOT NULL,
     duration_ms INT NOT NULL,
+    prompt_tokens INT NOT NULL DEFAULT 0,
+    completion_tokens INT NOT NULL DEFAULT 0,
+    total_tokens INT NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
