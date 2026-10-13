@@ -11,8 +11,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func CreateChatCompletion(req models.CreateChatCompletionRequest, routerURL string) (models.CreateChatCompletionResponse, error) {
-	routerReq := models.RouterRequest{RequestID: uuid.New(), CreateChatCompletionRequest: req}
+func CreateChatCompletion(routerReq models.RouterRequest, routerURL string) (models.CreateChatCompletionResponse, error) {
 	log.Printf("received chat completion request request_id=%v model=%v", routerReq.RequestID, routerReq.Model)
 	body, err := json.Marshal(routerReq)
 	if err != nil {
@@ -52,4 +51,25 @@ func CreateChatCompletion(req models.CreateChatCompletionRequest, routerURL stri
 	}
 
 	return result, nil
+}
+
+func CreateLogSuccess(resp models.CreateChatCompletionResponse, durationMS int) models.RequestLog {
+	return models.RequestLog{
+		ID:         uuid.New(),
+		RequestID:  resp.RequestID,
+		Model:      resp.Model,
+		Provider:   &resp.Provider,
+		StatusCode: 200,
+		DurationMS: durationMS,
+	}
+}
+
+func CreateLogFail(req models.RouterRequest, statusCode int, durationMS int) models.RequestLog {
+	return models.RequestLog{
+		ID:         uuid.New(),
+		RequestID:  req.RequestID,
+		Model:      req.Model,
+		StatusCode: statusCode,
+		DurationMS: durationMS,
+	}
 }

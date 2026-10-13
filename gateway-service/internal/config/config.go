@@ -13,6 +13,7 @@ type Config struct {
 	RedisURL          string
 	RateLimitRequests int
 	RateLimitSeconds  int
+	PostgresURL       string
 }
 
 func LoadConfig() Config {
@@ -31,6 +32,7 @@ func LoadConfig() Config {
 		RedisURL:          getEnv("REDIS_URL", "redis://localhost:6379"),
 		RateLimitRequests: rateLimitRequests,
 		RateLimitSeconds:  rateLimitSeconds,
+		PostgresURL:       getEnv("POSTGRES_URL", "postgres://postgres:postgres@localhost:5432/llm_gateway?sslmode=disable"),
 	}
 }
 

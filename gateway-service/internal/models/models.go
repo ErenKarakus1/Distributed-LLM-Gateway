@@ -2,6 +2,7 @@ package models
 
 import (
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -54,4 +55,14 @@ func (e UpstreamError) Error() string {
 type RouterRequest struct {
 	RequestID uuid.UUID `json:"request_id"`
 	CreateChatCompletionRequest
+}
+
+type RequestLog struct {
+	ID         uuid.UUID `json:"id"`
+	RequestID  uuid.UUID `json:"request_id"`
+	Model      string    `json:"model"`
+	Provider   *string   `json:"provider,omitempty"`
+	StatusCode int       `json:"status_code"`
+	DurationMS int       `json:"duration_ms"`
+	CreatedAt  time.Time `json:"created_at"`
 }
