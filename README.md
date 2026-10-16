@@ -11,6 +11,36 @@
 
 A distributed LLM gateway built as a set of independent Go microservices with a React dashboard. It exposes an OpenAI-style chat completions API, authenticates client requests, rate limits by API key, routes requests across mock and real providers, retries failed providers, estimates token usage and cost, and logs request metadata to PostgreSQL.
 
+## Table of Contents
+
+- [Architecture](#architecture)
+- [Project Structure](#project-structure)
+- [Services](#services)
+  - [Gateway Service](#gateway-service)
+  - [Router Service](#router-service)
+  - [Provider Service](#provider-service)
+  - [Frontend Dashboard](#frontend-dashboard)
+- [Tech Stack](#tech-stack)
+- [Features](#features)
+- [Request Flow](#request-flow)
+- [Provider Routing](#provider-routing)
+- [Request Logging](#request-logging)
+- [Authentication](#authentication)
+- [Getting Started](#getting-started)
+  - [1. Prerequisites](#1-prerequisites)
+  - [2. Configure environment variables](#2-configure-environment-variables)
+  - [3. Run everything with Docker Compose](#3-run-everything-with-docker-compose)
+  - [4. Send a mock request](#4-send-a-mock-request)
+  - [5. Send a real OpenAI request](#5-send-a-real-openai-request)
+- [API Endpoints](#api-endpoints)
+  - [Gateway Service](#gateway-service-1)
+  - [Router Service](#router-service-1)
+  - [Provider Service](#provider-service-1)
+- [Docker](#docker)
+- [Frontend Development](#frontend-development)
+- [Security Features](#security-features)
+- [Future Improvements](#future-improvements)
+
 ## Architecture
 
 ```mermaid
