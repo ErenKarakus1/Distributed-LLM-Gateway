@@ -39,6 +39,7 @@ A distributed LLM gateway built as a set of independent Go microservices with a 
 - [Docker](#docker)
 - [Frontend Development](#frontend-development)
 - [Security Features](#security-features)
+- [Known Limitations](#known-limitations)
 - [Future Improvements](#future-improvements)
 
 ## Architecture
@@ -604,6 +605,34 @@ During local development, frontend `/api` requests are proxied to `http://localh
 * `.env` files ignored by Git
 
 **Note: Only `frontend` and `gateway-service` should be reachable outside your private network.** The router and provider services are internal services and currently trust requests from the gateway/router path. There is no mTLS, service-to-service authentication, or independent authorization between internal services yet.
+
+---
+
+## Known Limitations
+
+This project is a learning-focused implementation, and a few areas are intentionally simple or unfinished.
+
+**Security**
+* No service-to-service authentication: the router and provider services trust requests from the gateway/router path, so they must not be exposed outside your private network.
+* No mTLS or independent authorization between internal services.
+* Admin endpoints (`/admin/logs`, `/admin/usage-summary`) use the same API key as client requests, so there is no separate admin role.
+* The default `dev-api-key` and local database/Redis credentials are for local development only.
+
+**Routing and reliability**
+* Round-robin state lives in router memory, so it resets on restart and is not shared across multiple router replicas.
+* No circuit breakers or provider health scoring: a failing provider is retried on every request.
+* No provider-specific rate limits.
+
+**Providers**
+* If `OPENAI_API_KEY` is not set and the `real` model is requested, the gateway returns a generic `500` error because the provider configuration error is not yet propagated through the router.
+* Only OpenAI is implemented as a real provider; Anthropic and Gemini are mocks.
+
+**API compatibility**
+* Streaming responses are not supported.
+* Token counts and costs are estimates, not exact figures from a tokenizer or provider billing data.
+
+**Operations**
+* No health check endpoints, structured logging, metrics, or distributed tracing yet.
 
 ---
 
