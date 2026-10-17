@@ -620,7 +620,7 @@ This project is a learning-focused implementation, and a few areas are intention
 
 **Routing and reliability**
 * Round-robin state lives in router memory, so it resets on restart and is not shared across multiple router replicas.
-* No circuit breakers or provider health scoring: a failing provider is retried on every request.
+* No circuit breakers or provider health scoring: a failing provider is still retried whenever the rotation selects it, with no memory of past failures.
 * No provider-specific rate limits.
 
 **Providers**
